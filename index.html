@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>藥王之塔與三重聖劑的藥學試煉 - 奇幻冒險任務 RPG</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- 頂部導航列 -->
+        <header class="game-header">
+            <div class="brand-section">
+                <span class="brand-icon">🏛️</span>
+                <div class="brand-title-group">
+                    <h1 id="chapter-title">序章：冒險啟程・王立藥學契約</h1>
+                    <span id="chapter-badge" class="chapter-badge">序章 / 4</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button id="btn-restart" class="btn-ancient" title="重置進度重新開始 (快捷鍵: R)">🔄 重新開始</button>
+                <button id="btn-hint" class="btn-ancient" title="尋求導師靈感線索 (快捷鍵: H)">💡 靈感提示</button>
+                <button id="btn-open-lore" class="btn-ancient btn-gold" title="查閱三重聖劑仿單寶典 (快捷鍵: B 或 L)">📖 藥王聖典</button>
+                <button id="btn-toggle-audio" class="btn-ancient" title="開關背景音效 (快捷鍵: M)">🎵 音效: 開</button>
+            </div>
+        </header>
+
+        <!-- 主舞台房間視窗 (Tower Stage Viewport) -->
+        <main id="room-viewport">
+            <div class="viewport-vignette"></div>
+
+            <!-- NPC 引導者對話框 -->
+            <div id="npc-guide-box" class="npc-guide-box" title="點擊或按空白鍵推進對話">
+                <img id="guide-avatar" class="guide-avatar" src="./images/characters/npc_king.jpg" alt="Guide">
+                <div class="guide-body">
+                    <div id="guide-name" class="guide-name">藥王國王・奧勒留 (艾斯庫拉庇俄斯之守護者)</div>
+                    <div id="guide-dialog" class="guide-dialog">正在聆聽國王的召集指令...</div>
+                    <div class="guide-hint-click">點擊繼續 ▶ (Space)</div>
+                </div>
+            </div>
+
+            <!-- 場景互動熱點容器 -->
+            <div id="hotspots-container"></div>
+        </main>
+
+        <!-- 底部冒險行囊 (Inventory Bar) -->
+        <footer class="inventory-bar">
+            <div class="inventory-header">
+                <span>🎒 冒險行囊</span>
+            </div>
+            <div id="inventory-slots" class="inventory-slots">
+                <!-- 道具格動態渲染 -->
+            </div>
+        </footer>
+
+        <!-- 彈窗 1：動態機關試煉與 BOSS 戰鬥視窗 (Puzzle Modal) -->
+        <div id="puzzle-modal" class="modal-overlay"></div>
+
+        <!-- 彈窗 2：神諭仿單手冊 (Lore Book Modal) -->
+        <div id="lore-modal" class="modal-overlay">
+            <div class="puzzle-box lore-book-box">
+                <div class="puzzle-header">
+                    <h3>📖 藥王聖典 (三大代謝聖劑臨床手冊)</h3>
+                    <button class="btn-close" onclick="engine.closeLoreModal()">✖</button>
+                </div>
+                <div class="puzzle-body">
+                    <div id="lore-content" class="lore-content">
+                        <!-- 動態渲染神諭內容 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 彈窗 3：通關勝利結算證書 (Victory Modal) -->
+        <div id="victory-modal" class="modal-overlay">
+            <div class="puzzle-box victory-box">
+                <div class="puzzle-header" style="justify-content: center;">
+                    <h3>🎉 登頂大圓滿・藥王之塔淨化！</h3>
+                </div>
+                <div class="puzzle-body" style="align-items: center; text-align: center;">
+                    <div style="font-size: 40px; margin-bottom: 8px;">👑</div>
+                    <h2 style="color: var(--gold-light); font-family: var(--font-serif); margin-bottom: 8px;">
+                        恭喜榮獲【特級代謝藥王宗師】稱號！
+                    </h2>
+                    <p style="color:#cbd5e1; font-size:16px; max-width: 580px; line-height: 1.65; margin-bottom: 18px;">
+                        你成功融合猛健樂 (GIP/GLP-1 RA)、週纖達 (Semaglutide 2.4mg) 與健妥適 (GalNAc-siRNA)，將糖尿病、肥胖症與高血脂三大魔神徹底淨化！
+                    </p>
+
+                    <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--gold); border-radius: 10px; padding: 18px 22px; text-align: left; width: 100%; max-width: 540px; font-size: 15px; line-height: 2.0; color: #e2e8f0;">
+                        <div>❄️ <strong>冷鏈極限：</strong>精準恪守 2°C~8°C 冷藏，掌握 30°C/30天極限規範</div>
+                        <div>💉 <strong>注模聖儀：</strong>精通 KwikPen 4劑0.6mL排氣、歸「0」默數5秒、針頭不留筆</div>
+                        <div>🛡️ <strong>安全核方：</strong>嚴格攔截甲狀腺髓質癌 (MTC) 與 MEN 2 黑框禁忌</div>
+                        <div>🪜 <strong>階梯滴定：</strong>熟稔 4 週漸進調量原則，平衡療效與腸胃道耐受性</div>
+                        <div>🧬 <strong>基因寂靜：</strong>掌握 GalNAc 靶向 ASGPR，降解 PCSK9 mRNA 永恆清血</div>
+                    </div>
+
+                    <div class="puzzle-footer" style="justify-content: center; width: 100%; margin-top: 18px;">
+                        <button class="btn-ancient btn-gold" onclick="engine.restart()" style="padding: 12px 28px; font-size: 16.5px;">
+                            🔄 再次挑戰藥王之塔
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 腳本引入 -->
+    <script src="js/audio.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/puzzles.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
