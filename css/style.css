@@ -188,19 +188,8 @@ body {
     overflow: hidden;
     flex-shrink: 0;
     position: relative;
-    background: #1e293b;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.guide-avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(2.0);
-    transform-origin: 50% 18%;
-    display: block;
+    background-color: #1e293b;
+    background-repeat: no-repeat;
 }
 
 .guide-body {
@@ -696,11 +685,10 @@ body {
     border-radius: 50%;
     overflow: hidden;
     position: relative;
-    background: #1e293b;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: #1e293b;
+    background-repeat: no-repeat;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    flex-shrink: 0;
 }
 
 .hero-avatar-frame {
@@ -713,33 +701,21 @@ body {
     box-shadow: 0 0 25px rgba(244, 63, 94, 0.5);
 }
 
-.battle-avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.hero-avatar {
-    transform: scale(2.1);
-    transform-origin: 48% 16%;
-}
-
-.boss-avatar {
-    transform: scale(1.75);
-    transform-origin: 50% 22%;
-}
-
 .combatant-badge {
     position: absolute;
-    bottom: -7px;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 11.5px;
-    padding: 2px 10px;
-    border-radius: 10px;
+    padding: 3px 12px;
+    border-radius: 12px;
     font-weight: 800;
     letter-spacing: 0.5px;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    z-index: 5;
 }
 
 .boss-card .combatant-badge {
@@ -882,19 +858,8 @@ body {
     border: 3px solid var(--gold);
     box-shadow: 0 0 30px var(--gold-glow);
     margin: 0 auto 14px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #1e293b;
-}
-
-.purified-boss-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(1.75);
-    transform-origin: 50% 22%;
-    display: block;
+    background-color: #1e293b;
+    background-repeat: no-repeat;
 }
 
 /* 神諭仿單手冊彈窗 */

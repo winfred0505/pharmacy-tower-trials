@@ -1,4 +1,9 @@
-﻿/**
+﻿function safeCssUrl(url) {
+    if (!url) return '';
+    return encodeURI(url).replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/'/g, '%27');
+}
+
+/**
  * 藥王之塔 - 試煉解謎與 Boss 戰鬥系統
  */
 class PuzzleManager {
@@ -214,20 +219,20 @@ class PuzzleManager {
             onVictory: onVictory
         };
 
-        let bossTransform = "scale(1.75)";
-        let bossOrigin = "50% 22%";
+        let bossBgSize = "400%";
+        let bossBgPos = "50% 25%";
         if (bossId === "boss_obesity") {
-            bossTransform = "scale(1.8)";
-            bossOrigin = "38% 21%";
+            bossBgSize = "360%";
+            bossBgPos = "36% 21%";
         } else if (bossId === "boss_lipid") {
-            bossTransform = "scale(1.75)";
-            bossOrigin = "52% 22%";
+            bossBgSize = "400%";
+            bossBgPos = "51% 25%";
         } else if (bossId === "boss_diabetes") {
-            bossTransform = "scale(1.75)";
-            bossOrigin = "50% 22%";
+            bossBgSize = "400%";
+            bossBgPos = "50% 25%";
         }
-        this.currentBossTransform = bossTransform;
-        this.currentBossOrigin = bossOrigin;
+        this.currentBossBgSize = bossBgSize;
+        this.currentBossBgPos = bossBgPos;
 
         const modal = document.getElementById("puzzle-modal");
         modal.innerHTML = `
@@ -242,10 +247,8 @@ class PuzzleManager {
                         <!-- 玩家勇者區域 (我方在左) -->
                         <div class="combatant-card hero-card">
                             <div class="avatar-wrapper">
-                                <div class="battle-avatar-frame hero-avatar-frame">
-                                    <img src="./images/characters/npc_princess.jpg" alt="藥學勇者" class="battle-avatar hero-avatar">
-                                </div>
-                                <span class="combatant-badge">我方・PHARMACIST</span>
+                                <div class="battle-avatar-frame hero-avatar-frame" style="background-image: url('./images/characters/npc_princess.jpg'); background-size: 320%; background-position: 48% 18%;"></div>
+                                <span class="combatant-badge">我方・藥學使者</span>
                             </div>
                             <div class="combatant-meta">
                                 <div class="combatant-name">臨床藥學使者</div>
@@ -263,10 +266,8 @@ class PuzzleManager {
                         <!-- 敵方 Boss 區域 (敵方在右) -->
                         <div class="combatant-card boss-card">
                             <div class="avatar-wrapper">
-                                <div class="battle-avatar-frame boss-avatar-frame">
-                                    <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="battle-avatar boss-avatar" style="transform: ${bossTransform}; transform-origin: ${bossOrigin};">
-                                </div>
-                                <span class="combatant-badge">敵方・BOSS</span>
+                                <div class="battle-avatar-frame boss-avatar-frame" style="background-image: url('${safeCssUrl(bossChar.avatar)}'); background-size: ${bossBgSize}; background-position: ${bossBgPos};"></div>
+                                <span class="combatant-badge">敵方・魔神首領</span>
                             </div>
                             <div class="combatant-meta">
                                 <div class="combatant-name">${bossChar.name}</div>
@@ -380,9 +381,7 @@ class PuzzleManager {
                     <h3>🎉 首領淨化成功・神聖破曉！</h3>
                 </div>
                 <div class="puzzle-body" style="text-align:center;">
-                    <div class="purified-boss-frame">
-                        <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="purified-boss-img" style="transform: ${this.currentBossTransform || 'scale(1.75)'}; transform-origin: ${this.currentBossOrigin || '50% 22%'};">
-                    </div>
+                    <div class="purified-boss-frame" style="background-image: url('${safeCssUrl(bossChar.avatar)}'); background-size: ${this.currentBossBgSize || '400%'}; background-position: ${this.currentBossBgPos || '50% 25%'};"></div>
                     <h3 style="color:#f59e0b; margin-top:10px;">${bossChar.name} 已被徹底淨化！</h3>
                     <p style="color:#94a3b8; font-size:14px; margin: 10px 0 20px;">
                         你以卓越的臨床藥學推論擊潰了代謝魔神的肆虐，古代封印再度恢復平靜！
