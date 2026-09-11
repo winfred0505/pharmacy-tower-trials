@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 藥王之塔與三重聖劑的藥學試煉 - 全域資料庫與劇本
  */
 const GAME_DATA = {
@@ -300,7 +300,7 @@ const GAME_DATA = {
                     name: "肥胖共病診斷案台",
                     x: "24%",
                     y: "48%",
-                    icon: "⚖️",
+                    icon: "📋",
                     type: "puzzle",
                     puzzleId: "bmi_criteria_puzzle",
                     desc: "記錄著 BMI 數據與心血管共病（高血壓、血脂異常、OSA）的病歷卷軸。"
@@ -310,7 +310,7 @@ const GAME_DATA = {
                     name: "五階晨曦劑量天秤",
                     x: "76%",
                     y: "48%",
-                    icon: "📈",
+                    icon: "⚖️",
                     type: "puzzle",
                     puzzleId: "titration_ladder_puzzle",
                     desc: "需要按週數精準依序擺放 0.25mg 至 2.4mg 劑量水晶的神奇天秤。"
@@ -485,7 +485,7 @@ const GAME_DATA = {
         },
 
         bmi_criteria_puzzle: {
-            title: "⚖️ 試煉 2-1：體重控制門檻與 SELECT 里程碑",
+            title: "📋 試煉 2-1：體重控制門檻與 SELECT 里程碑",
             desc: "草藥商人正在審核肥胖患者的臨床處方箋，請完成以下判定：",
             type: "choice_set",
             questions: [
@@ -516,7 +516,7 @@ const GAME_DATA = {
         },
 
         titration_ladder_puzzle: {
-            title: "🪜 試煉 2-2：五階晨曦劑量階梯天秤",
+            title: "⚖️ 試煉 2-2：五階晨曦劑量階梯天秤",
             desc: "為了有效預防腸胃道不良反應（噁心、嘔吐），週纖達必須依序漸進調量。請選出正確的 5 階時程：",
             type: "choice_set",
             questions: [
