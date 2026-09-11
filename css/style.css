@@ -179,18 +179,35 @@ body {
     transform: translateY(-2px);
 }
 
-.guide-avatar {
+.guide-avatar-frame {
     width: 76px;
     height: 76px;
     border-radius: 50%;
-    object-fit: cover;
     border: 2px solid var(--gold);
     box-shadow: 0 0 14px var(--gold-glow);
+    overflow: hidden;
     flex-shrink: 0;
+    position: relative;
+    background: #1e293b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.guide-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(2.0);
+    transform-origin: 50% 18%;
+    display: block;
 }
 
 .guide-body {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .guide-name {
@@ -199,6 +216,7 @@ body {
     color: var(--gold-light);
     margin-bottom: 5px;
     font-family: var(--font-serif);
+    word-break: break-word;
 }
 
 .guide-dialog {
@@ -206,13 +224,17 @@ body {
     line-height: 1.6;
     color: var(--text-main);
     min-height: 26px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .guide-hint-click {
-    font-size: 12.5px;
-    color: var(--text-muted);
-    float: right;
-    margin-top: 4px;
+    font-size: 12px;
+    color: var(--gold-light);
+    opacity: 0.85;
+    align-self: flex-end;
+    margin-top: 6px;
+    white-space: nowrap;
 }
 
 /* 熱點 Hotspots */
@@ -278,24 +300,27 @@ body {
 
 .hotspot-tooltip {
     position: absolute;
-    bottom: -32px;
+    bottom: 112%;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
     white-space: nowrap;
-    background: rgba(2, 6, 23, 0.92);
-    border: 1px solid rgba(245, 158, 11, 0.4);
+    background: rgba(2, 6, 23, 0.94);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
     padding: 4px 12px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 13.5px;
     color: var(--gold-light);
     opacity: 0;
-    transform: translateY(4px);
     transition: all 0.2s ease;
     pointer-events: none;
     font-weight: 600;
+    z-index: 6;
 }
 
 .hotspot:hover .hotspot-tooltip {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
 }
 
 /* 底部冒險行囊 */
@@ -598,6 +623,33 @@ body {
 /* 戰鬥舞台 (Boss Battle Arena) */
 .battle-arena-box {
     max-width: 880px;
+    max-height: 92vh;
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.battle-content-scroll {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(244, 63, 94, 0.5) rgba(15, 23, 42, 0.6);
+}
+
+.battle-content-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.battle-content-scroll::-webkit-scrollbar-thumb {
+    background: rgba(244, 63, 94, 0.4);
+    border-radius: 3px;
+}
+
+.battle-content-scroll::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
 }
 
 .battle-header {
@@ -607,6 +659,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .battle-title {
@@ -637,22 +690,44 @@ body {
     margin-bottom: 12px;
 }
 
-.battle-avatar {
+.battle-avatar-frame {
     width: 110px;
     height: 110px;
     border-radius: 50%;
-    object-fit: cover;
+    overflow: hidden;
+    position: relative;
+    background: #1e293b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
-.boss-avatar {
+.hero-avatar-frame {
+    border: 3px solid var(--cyan);
+    box-shadow: 0 0 25px var(--cyan-glow);
+}
+
+.boss-avatar-frame {
     border: 3px solid var(--rose);
     box-shadow: 0 0 25px rgba(244, 63, 94, 0.5);
 }
 
+.battle-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
 .hero-avatar {
-    border: 3px solid var(--cyan);
-    box-shadow: 0 0 25px var(--cyan-glow);
+    transform: scale(2.1);
+    transform-origin: 48% 16%;
+}
+
+.boss-avatar {
+    transform: scale(1.75);
+    transform-origin: 50% 22%;
 }
 
 .combatant-badge {
@@ -799,19 +874,27 @@ body {
     border: 1px solid var(--emerald);
 }
 
-.battle-log.log-error {
-    background: rgba(244, 63, 94, 0.15);
-    color: #fecdd3;
-    border: 1px solid var(--rose);
-}
-
-.purified-boss-img {
+.purified-boss-frame {
     width: 130px;
     height: 130px;
     border-radius: 50%;
-    object-fit: cover;
+    overflow: hidden;
     border: 3px solid var(--gold);
     box-shadow: 0 0 30px var(--gold-glow);
+    margin: 0 auto 14px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1e293b;
+}
+
+.purified-boss-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.75);
+    transform-origin: 50% 22%;
+    display: block;
 }
 
 /* 神諭仿單手冊彈窗 */
@@ -965,9 +1048,9 @@ body {
         border-radius: 10px;
     }
 
-    .guide-avatar {
-        width: 58px;
-        height: 58px;
+    .guide-avatar-frame {
+        width: 60px;
+        height: 60px;
     }
 
     .guide-name {
@@ -998,7 +1081,7 @@ body {
     .hotspot-tooltip {
         font-size: 11.5px;
         padding: 3px 8px;
-        bottom: -28px;
+        bottom: 112%;
     }
 
     .inventory-bar {
@@ -1028,8 +1111,8 @@ body {
     }
 
     .slot-name {
-        font-size: 9px;
-        width: 48px;
+        font-size: 9.5px;
+        width: 50px;
     }
 
     .slot-empty {
@@ -1098,9 +1181,9 @@ body {
         width: 135px;
     }
 
-    .battle-avatar {
-        width: 68px;
-        height: 68px;
+    .battle-avatar-frame {
+        width: 76px;
+        height: 76px;
     }
 
     .combatant-name {
@@ -1153,20 +1236,28 @@ body {
 }
 
 @media (max-width: 480px) {
+    .game-header {
+        height: auto;
+        min-height: 52px;
+        padding: 6px 10px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
     .brand-title-group h1 {
-        font-size: 13.5px;
-        max-width: 140px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 13px;
+        line-height: 1.3;
+        white-space: normal;
+        max-width: none;
     }
 
     .header-actions {
         gap: 4px;
+        flex-wrap: wrap;
     }
 
     .btn-ancient {
-        padding: 5px 7px;
+        padding: 4px 6px;
         font-size: 11px;
     }
 
@@ -1175,9 +1266,9 @@ body {
         gap: 10px;
     }
 
-    .guide-avatar {
-        width: 48px;
-        height: 48px;
+    .guide-avatar-frame {
+        width: 50px;
+        height: 50px;
     }
 
     .guide-name {
@@ -1196,8 +1287,8 @@ body {
         width: 90px;
     }
 
-    .battle-avatar {
-        width: 56px;
-        height: 56px;
+    .battle-avatar-frame {
+        width: 62px;
+        height: 62px;
     }
 }

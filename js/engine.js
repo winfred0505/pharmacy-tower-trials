@@ -86,7 +86,30 @@ class PharmacyTowerEngine {
 
         // 設定 NPC 對話
         const npc = GAME_DATA.characters[chapter.guideNpc];
-        document.getElementById("guide-avatar").src = npc.avatar;
+        const avatarEl = document.getElementById("guide-avatar");
+        avatarEl.src = npc.avatar;
+
+        // 角色圖像以頭部為主呈現 (Head-focused portrait styling)
+        if (chapter.guideNpc === "king") {
+            avatarEl.style.transform = "scale(2.1)";
+            avatarEl.style.transformOrigin = "48% 18%";
+        } else if (chapter.guideNpc === "princess") {
+            avatarEl.style.transform = "scale(2.1)";
+            avatarEl.style.transformOrigin = "48% 16%";
+        } else if (chapter.guideNpc === "weaponsmith") {
+            avatarEl.style.transform = "scale(2.0)";
+            avatarEl.style.transformOrigin = "50% 18%";
+        } else if (chapter.guideNpc === "merchant") {
+            avatarEl.style.transform = "scale(2.0)";
+            avatarEl.style.transformOrigin = "48% 22%";
+        } else if (chapter.guideNpc === "innkeeper") {
+            avatarEl.style.transform = "scale(2.0)";
+            avatarEl.style.transformOrigin = "45% 18%";
+        } else {
+            avatarEl.style.transform = "scale(2.0)";
+            avatarEl.style.transformOrigin = "50% 20%";
+        }
+
         document.getElementById("guide-name").textContent = `${npc.name} (${npc.title})`;
         this.startDialogue(chapter.introDialog);
 
@@ -424,4 +447,3 @@ class PharmacyTowerEngine {
 }
 
 window.PharmacyTowerEngine = PharmacyTowerEngine;
-

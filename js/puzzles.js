@@ -105,6 +105,7 @@ class PuzzleManager {
             window.soundEngine.playSuccess();
             feedback.className = "puzzle-feedback success";
             feedback.innerHTML = `<strong>✨ 判定完全正確！</strong><br>${currentQ.rationale}`;
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             const submitBtn = document.getElementById("btn-submit-answer");
             submitBtn.disabled = true;
@@ -122,6 +123,7 @@ class PuzzleManager {
             window.soundEngine.playError();
             feedback.className = "puzzle-feedback error";
             feedback.innerHTML = `<strong>❌ 藥理判斷有誤！</strong><br>臨床警示：請再次仔細審閱仿單規範與臨床指標！<br><span style="font-size:13px; color:#94a3b8;">提示：${currentQ.rationale}</span>`;
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 
@@ -212,6 +214,21 @@ class PuzzleManager {
             onVictory: onVictory
         };
 
+        let bossTransform = "scale(1.75)";
+        let bossOrigin = "50% 22%";
+        if (bossId === "boss_obesity") {
+            bossTransform = "scale(1.8)";
+            bossOrigin = "38% 21%";
+        } else if (bossId === "boss_lipid") {
+            bossTransform = "scale(1.75)";
+            bossOrigin = "52% 22%";
+        } else if (bossId === "boss_diabetes") {
+            bossTransform = "scale(1.75)";
+            bossOrigin = "50% 22%";
+        }
+        this.currentBossTransform = bossTransform;
+        this.currentBossOrigin = bossOrigin;
+
         const modal = document.getElementById("puzzle-modal");
         modal.innerHTML = `
             <div class="puzzle-box battle-arena-box">
@@ -220,47 +237,53 @@ class PuzzleManager {
                     <button class="btn-close" id="btn-flee-battle" title="戰略撤退">🏳️ 撤退</button>
                 </div>
 
-                <div class="battle-stage">
-                    <!-- 玩家勇者區域 (我方在左) -->
-                    <div class="combatant-card hero-card">
-                        <div class="avatar-wrapper">
-                            <img src="./images/characters/npc_princess.jpg" alt="藥學勇者" class="battle-avatar hero-avatar">
-                            <span class="combatant-badge">我方・PHARMACIST</span>
-                        </div>
-                        <div class="combatant-meta">
-                            <div class="combatant-name">臨床藥學使者</div>
-                            <div class="combatant-title">持有聖劑：${bData.holyAgent}</div>
-                            <div class="hp-bar-outer">
-                                <div id="player-hp-bar" class="hp-bar-inner player-hp" style="width: 100%;"></div>
+                <div class="battle-content-scroll">
+                    <div class="battle-stage">
+                        <!-- 玩家勇者區域 (我方在左) -->
+                        <div class="combatant-card hero-card">
+                            <div class="avatar-wrapper">
+                                <div class="battle-avatar-frame hero-avatar-frame">
+                                    <img src="./images/characters/npc_princess.jpg" alt="藥學勇者" class="battle-avatar hero-avatar">
+                                </div>
+                                <span class="combatant-badge">我方・PHARMACIST</span>
                             </div>
-                            <div class="hp-text"><span id="player-hp-val">100</span> / 100 HP</div>
+                            <div class="combatant-meta">
+                                <div class="combatant-name">臨床藥學使者</div>
+                                <div class="combatant-title">持有聖劑：${bData.holyAgent}</div>
+                                <div class="hp-bar-outer">
+                                    <div id="player-hp-bar" class="hp-bar-inner player-hp" style="width: 100%;"></div>
+                                </div>
+                                <div class="hp-text"><span id="player-hp-val">100</span> / 100 HP</div>
+                            </div>
+                        </div>
+
+                        <!-- VS 標記 -->
+                        <div class="vs-badge">VS</div>
+
+                        <!-- 敵方 Boss 區域 (敵方在右) -->
+                        <div class="combatant-card boss-card">
+                            <div class="avatar-wrapper">
+                                <div class="battle-avatar-frame boss-avatar-frame">
+                                    <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="battle-avatar boss-avatar" style="transform: ${bossTransform}; transform-origin: ${bossOrigin};">
+                                </div>
+                                <span class="combatant-badge">敵方・BOSS</span>
+                            </div>
+                            <div class="combatant-meta">
+                                <div class="combatant-name">${bossChar.name}</div>
+                                <div class="combatant-title">${bossChar.title}</div>
+                                <div class="hp-bar-outer">
+                                    <div id="boss-hp-bar" class="hp-bar-inner boss-hp" style="width: 100%;"></div>
+                                </div>
+                                <div class="hp-text"><span id="boss-hp-val">100</span> / 100 HP</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- VS 標記 -->
-                    <div class="vs-badge">VS</div>
-
-                    <!-- 敵方 Boss 區域 (敵方在右) -->
-                    <div class="combatant-card boss-card">
-                        <div class="avatar-wrapper">
-                            <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="battle-avatar boss-avatar">
-                            <span class="combatant-badge">敵方・BOSS</span>
-                        </div>
-                        <div class="combatant-meta">
-                            <div class="combatant-name">${bossChar.name}</div>
-                            <div class="combatant-title">${bossChar.title}</div>
-                            <div class="hp-bar-outer">
-                                <div id="boss-hp-bar" class="hp-bar-inner boss-hp" style="width: 100%;"></div>
-                            </div>
-                            <div class="hp-text"><span id="boss-hp-val">100</span> / 100 HP</div>
-                        </div>
+                    <div class="battle-controls">
+                        <div class="battle-prompt" id="battle-turn-prompt"></div>
+                        <div class="battle-actions" id="battle-actions-grid"></div>
+                        <div class="battle-log" id="battle-log-text">魔神咆哮！請選擇正確的聖劑藥理技能迎戰！</div>
                     </div>
-                </div>
-
-                <div class="battle-controls">
-                    <div class="battle-prompt" id="battle-turn-prompt"></div>
-                    <div class="battle-actions" id="battle-actions-grid"></div>
-                    <div class="battle-log" id="battle-log-text">魔神咆哮！請選擇正確的聖劑藥理技能迎戰！</div>
                 </div>
             </div>
         `;
@@ -357,7 +380,9 @@ class PuzzleManager {
                     <h3>🎉 首領淨化成功・神聖破曉！</h3>
                 </div>
                 <div class="puzzle-body" style="text-align:center;">
-                    <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="purified-boss-img">
+                    <div class="purified-boss-frame">
+                        <img src="${encodeURI(bossChar.avatar)}" alt="${bossChar.name}" class="purified-boss-img" style="transform: ${this.currentBossTransform || 'scale(1.75)'}; transform-origin: ${this.currentBossOrigin || '50% 22%'};">
+                    </div>
                     <h3 style="color:#f59e0b; margin-top:10px;">${bossChar.name} 已被徹底淨化！</h3>
                     <p style="color:#94a3b8; font-size:14px; margin: 10px 0 20px;">
                         你以卓越的臨床藥學推論擊潰了代謝魔神的肆虐，古代封印再度恢復平靜！
@@ -378,4 +403,3 @@ class PuzzleManager {
 }
 
 window.PuzzleManager = PuzzleManager;
-
