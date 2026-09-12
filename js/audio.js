@@ -1,15 +1,26 @@
-﻿/**
- * 藥王之塔 - Web Audio API 原生音效合成引擎
- * 無需外部音訊檔案，純程式即時合成音樂與音效
+/**
+ * 藥王之塔 - 音效與交響音樂引擎
+ * 支援壯闊冒險交響樂（Call to Adventure）與激烈首領對戰管弦樂（Five Armies）
+ * 具備平滑淡入淡出 (Crossfade)、自動循環 (Loop) 與 Web Audio API 技能特效音
  */
 class SoundEngine {
     constructor() {
         this.ctx = null;
         this.isMuted = false;
-        this.bgmOscs = [];
-        this.bgmGain = null;
-        this.bgmTimer = null;
         this.currentBgm = null;
+        this.bgmAudio = null;
+        this.pendingBgm = null;
+        this.targetVolume = 0.45;
+
+        // 原生交響樂曲庫（相對路徑適配 GitHub Pages 與本地端）
+        this.bgmTracks = {
+            adventure: './audio/bgm_adventure.mp3',
+            village: './audio/bgm_adventure.mp3',
+            mystery: './audio/bgm_adventure.mp3',
+            battle: './audio/bgm_battle.mp3'
+        };
+
+        this.bgmTimer = null;
     }
 
     init() {
@@ -22,16 +33,132 @@ class SoundEngine {
         }
     }
 
+    resumeIfBlocked() {
+        this.init();
+        if (this.isMuted) return;
+
+        if (this.pendingBgm) {
+            const track = this.pendingBgm;
+            this.pendingBgm = null;
+            this.playBGM(track);
+        } else if (this.bgmAudio && this.bgmAudio.paused) {
+            this.bgmAudio.play().catch(() => {});
+        }
+    }
+
     toggleMute() {
         this.isMuted = !this.isMuted;
         if (this.isMuted) {
-            this.stopBGM();
-        } else if (this.currentBgm) {
-            this.playBGM(this.currentBgm);
+            if (this.bgmAudio) {
+                this.bgmAudio.pause();
+            }
+            this.stopSynthBGM();
+        } else {
+            const trackToPlay = this.currentBgm || 'adventure';
+            this.playBGM(trackToPlay);
         }
         return this.isMuted;
     }
 
+    /**
+     * 播放背景音樂（含平滑跨軌淡入淡出）
+     * @param {string} type - 'adventure' (行進風壯闊冒險交響樂) 或 'battle' (動態打擊樂大膽管弦對戰樂)
+     */
+    playBGM(type = 'adventure') {
+        const normalizedType = (type === 'battle') ? 'battle' : 'adventure';
+
+        // 若已在播放相同曲目且未暫停，直接返回
+        if (this.currentBgm === normalizedType && this.bgmAudio && !this.bgmAudio.paused) {
+            return;
+        }
+
+        this.currentBgm = normalizedType;
+        if (this.isMuted) return;
+
+        const src = this.bgmTracks[normalizedType];
+        if (!src) return;
+
+        const oldAudio = this.bgmAudio;
+        const newAudio = new Audio(src);
+        newAudio.loop = true;
+        newAudio.volume = 0; // 從 0 開始平滑淡入
+
+        const playPromise = newAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                this.bgmAudio = newAudio;
+                this.fadeInAudio(newAudio, this.targetVolume, 700);
+                if (oldAudio && oldAudio !== newAudio) {
+                    this.fadeOutAudio(oldAudio, 600);
+                }
+            }).catch(() => {
+                // 瀏覽器 Autoplay 政策阻擋，等待使用者手勢觸發
+                this.pendingBgm = normalizedType;
+            });
+        }
+    }
+
+    fadeInAudio(audio, targetVol, duration = 700) {
+        const stepTime = 30;
+        const steps = duration / stepTime;
+        const stepVol = targetVol / steps;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            if (this.isMuted || !audio) {
+                if (audio) audio.volume = 0;
+                clearInterval(timer);
+                return;
+            }
+            current += stepVol;
+            if (current >= targetVol) {
+                audio.volume = targetVol;
+                clearInterval(timer);
+            } else {
+                audio.volume = Math.min(targetVol, current);
+            }
+        }, stepTime);
+    }
+
+    fadeOutAudio(audio, duration = 600) {
+        const stepTime = 30;
+        const steps = duration / stepTime;
+        const stepVol = audio.volume / steps;
+
+        const timer = setInterval(() => {
+            if (!audio) {
+                clearInterval(timer);
+                return;
+            }
+            if (audio.volume - stepVol <= 0.01) {
+                audio.volume = 0;
+                audio.pause();
+                audio.currentTime = 0;
+                clearInterval(timer);
+            } else {
+                audio.volume = Math.max(0, audio.volume - stepVol);
+            }
+        }, stepTime);
+    }
+
+    stopBGM() {
+        if (this.bgmAudio) {
+            this.bgmAudio.pause();
+            this.bgmAudio.currentTime = 0;
+        }
+        this.stopSynthBGM();
+    }
+
+    stopSynthBGM() {
+        if (this.bgmTimer) {
+            clearInterval(this.bgmTimer);
+            this.bgmTimer = null;
+        }
+    }
+
+    // ==========================================
+    // Web Audio API 技能特效與音效
+    // ==========================================
     playClick() {
         if (this.isMuted) return;
         this.init();
@@ -144,76 +271,6 @@ class SoundEngine {
             osc.stop(now + note.d);
             now += note.d * 0.85;
         });
-    }
-
-    playBGM(type = 'mystery') {
-        this.currentBgm = type;
-        if (this.isMuted) return;
-        this.stopBGM();
-        this.init();
-
-        const chords = {
-            village: [
-                [261.63, 329.63, 392.00], // C
-                [220.00, 261.63, 329.63], // Am
-                [174.61, 220.00, 261.63], // F
-                [196.00, 246.94, 293.66]  // G
-            ],
-            mystery: [
-                [220.00, 261.63, 329.63], // Am
-                [196.00, 246.94, 293.66], // G
-                [174.61, 220.00, 261.63], // F
-                [164.81, 207.65, 246.94]  // E
-            ],
-            battle: [
-                [146.83, 174.61, 220.00], // Dm
-                [130.81, 164.81, 196.00], // C
-                [116.54, 146.83, 174.61], // Bb
-                [110.00, 138.59, 164.81]  // A
-            ]
-        };
-
-        const progression = chords[type] || chords.mystery;
-        let step = 0;
-
-        const playChord = () => {
-            if (this.isMuted) return;
-            const currentChord = progression[step % progression.length];
-            step++;
-
-            currentChord.forEach(f => {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                const filter = this.ctx.createBiquadFilter();
-
-                osc.type = type === 'battle' ? 'sawtooth' : 'sine';
-                osc.frequency.setValueAtTime(f, this.ctx.currentTime);
-
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(type === 'battle' ? 900 : 600, this.ctx.currentTime);
-
-                gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.04, this.ctx.currentTime + 0.6);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.8);
-
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(this.ctx.destination);
-
-                osc.start();
-                osc.stop(this.ctx.currentTime + 2.9);
-            });
-        };
-
-        playChord();
-        this.bgmTimer = setInterval(playChord, 3000);
-    }
-
-    stopBGM() {
-        if (this.bgmTimer) {
-            clearInterval(this.bgmTimer);
-            this.bgmTimer = null;
-        }
     }
 }
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 藥王之塔 - 核心冒險任務遊戲引擎 (Game Engine)
  */
 class PharmacyTowerEngine {
@@ -55,6 +55,17 @@ class PharmacyTowerEngine {
             btnHint.onclick = () => this.showHint();
         }
 
+        // 任何首次手勢互動時自動喚醒背景音樂（解除瀏覽器 Autoplay 限制）
+        const unlockAudio = () => {
+            window.soundEngine.resumeIfBlocked();
+            document.removeEventListener("click", unlockAudio);
+            document.removeEventListener("keydown", unlockAudio);
+            document.removeEventListener("touchstart", unlockAudio);
+        };
+        document.addEventListener("click", unlockAudio);
+        document.addEventListener("keydown", unlockAudio);
+        document.addEventListener("touchstart", unlockAudio);
+
         // 點擊對話框推進對話
         const dialogBox = document.getElementById("npc-guide-box");
         if (dialogBox) {
@@ -75,14 +86,8 @@ class PharmacyTowerEngine {
         const viewport = document.getElementById("room-viewport");
         viewport.style.backgroundImage = `url("${encodeURI(chapter.bgImage)}")`;
 
-        // 播放環境音樂
-        if (idx === 0) {
-            window.soundEngine.playBGM('village');
-        } else if (idx === 4) {
-            window.soundEngine.playBGM('village');
-        } else {
-            window.soundEngine.playBGM('mystery');
-        }
+        // 播放壯闊冒險交響樂
+        window.soundEngine.playBGM('adventure');
 
         // 設定 NPC 對話
         const npc = GAME_DATA.characters[chapter.guideNpc];

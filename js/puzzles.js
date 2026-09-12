@@ -1,4 +1,4 @@
-﻿function safeCssUrl(url) {
+function safeCssUrl(url) {
     if (!url) return '';
     return encodeURI(url).replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/'/g, '%27');
 }
@@ -290,7 +290,7 @@ class PuzzleManager {
         `;
 
         document.getElementById("btn-flee-battle").onclick = () => {
-            window.soundEngine.playBGM('mystery');
+            window.soundEngine.playBGM('adventure');
             this.closePuzzle();
         };
 
@@ -371,7 +371,7 @@ class PuzzleManager {
 
     victoryBossBattle() {
         window.soundEngine.playFanfare();
-        window.soundEngine.playBGM('village');
+        window.soundEngine.playBGM('adventure');
         const { bossChar, onVictory } = this.activeBattle;
         const modal = document.getElementById("puzzle-modal");
 
