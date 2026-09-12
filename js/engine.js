@@ -18,18 +18,27 @@ class PharmacyTowerEngine {
     init() {
         this.loadSaveData();
         this.bindGlobalEvents();
+        this.updateAudioButtons();
         this.loadChapter(this.currentChapterIdx);
         this.renderInventory();
     }
 
     bindGlobalEvents() {
-        // 音效開關
-        const btnAudio = document.getElementById("btn-toggle-audio");
-        if (btnAudio) {
-            btnAudio.onclick = () => {
-                const muted = window.soundEngine.toggleMute();
-                btnAudio.innerHTML = muted ? "🔇 音效: 關" : "🎵 音效: 開";
-                btnAudio.classList.toggle("active", !muted);
+        // 背景音樂開關 (BGM)
+        const btnBgm = document.getElementById("btn-toggle-bgm");
+        if (btnBgm) {
+            btnBgm.onclick = () => {
+                window.soundEngine.toggleBGM();
+                this.updateAudioButtons();
+            };
+        }
+
+        // 操作音效開關 (SFX)
+        const btnSfx = document.getElementById("btn-toggle-sfx");
+        if (btnSfx) {
+            btnSfx.onclick = () => {
+                window.soundEngine.toggleSFX();
+                this.updateAudioButtons();
             };
         }
 
@@ -69,7 +78,47 @@ class PharmacyTowerEngine {
         // 點擊對話框推進對話
         const dialogBox = document.getElementById("npc-guide-box");
         if (dialogBox) {
-            dialogBox.onclick = () => this.advanceDialogue();
+            dialogBox.onclick = () => this.advanceDialog();
+        }
+
+        // 全域鍵盤快捷鍵
+        document.addEventListener("keydown", (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.code === "Space") {
+                e.preventDefault();
+                this.advanceDialog();
+            } else if (e.key === "b" || e.key === "B" || e.key === "l" || e.key === "L") {
+                this.openLoreModal();
+            } else if (e.key === "m" || e.key === "M") {
+                const btnBgm = document.getElementById("btn-toggle-bgm");
+                if (btnBgm) btnBgm.click();
+            } else if (e.key === "n" || e.key === "N" || e.key === "s" || e.key === "S") {
+                const btnSfx = document.getElementById("btn-toggle-sfx");
+                if (btnSfx) btnSfx.click();
+            } else if (e.key === "h" || e.key === "H") {
+                this.showHint();
+            } else if (e.key === "r" || e.key === "R") {
+                const btnRestart = document.getElementById("btn-restart");
+                if (btnRestart) btnRestart.click();
+            }
+        });
+    }
+
+    updateAudioButtons() {
+        const btnBgm = document.getElementById("btn-toggle-bgm");
+        if (btnBgm) {
+            const isMuted = window.soundEngine.isBgmMuted;
+            btnBgm.innerHTML = isMuted ? "🔇 音樂: 關" : "🎼 音樂: 開";
+            btnBgm.classList.toggle("btn-muted", isMuted);
+            btnBgm.title = isMuted ? "開啟背景音樂 (快捷鍵: M)" : "關閉背景音樂 (快捷鍵: M)";
+        }
+        const btnSfx = document.getElementById("btn-toggle-sfx");
+        if (btnSfx) {
+            const isMuted = window.soundEngine.isSfxMuted;
+            btnSfx.innerHTML = isMuted ? "🔕 音效: 關" : "🔔 音效: 開";
+            btnSfx.classList.toggle("btn-muted", isMuted);
+            btnSfx.title = isMuted ? "開啟操作音效 (快捷鍵: N)" : "關閉操作音效 (快捷鍵: N)";
         }
     }
 

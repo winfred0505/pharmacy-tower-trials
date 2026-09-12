@@ -6,7 +6,8 @@
 class SoundEngine {
     constructor() {
         this.ctx = null;
-        this.isMuted = false;
+        this.isBgmMuted = localStorage.getItem("pharmacy_tower_bgm_muted") === "true";
+        this.isSfxMuted = localStorage.getItem("pharmacy_tower_sfx_muted") === "true";
         this.currentBgm = null;
         this.bgmAudio = null;
         this.pendingBgm = null;
@@ -35,7 +36,7 @@ class SoundEngine {
 
     resumeIfBlocked() {
         this.init();
-        if (this.isMuted) return;
+        if (this.isBgmMuted) return;
 
         if (this.pendingBgm) {
             const track = this.pendingBgm;
@@ -46,9 +47,16 @@ class SoundEngine {
         }
     }
 
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        if (this.isMuted) {
+    /**
+     * 獨立開關背景音樂 (BGM)
+     */
+    toggleBGM() {
+        this.isBgmMuted = !this.isBgmMuted;
+        try {
+            localStorage.setItem("pharmacy_tower_bgm_muted", this.isBgmMuted);
+        } catch (e) {}
+
+        if (this.isBgmMuted) {
             if (this.bgmAudio) {
                 this.bgmAudio.pause();
             }
@@ -57,7 +65,27 @@ class SoundEngine {
             const trackToPlay = this.currentBgm || 'adventure';
             this.playBGM(trackToPlay);
         }
-        return this.isMuted;
+        return this.isBgmMuted;
+    }
+
+    /**
+     * 獨立開關操作音效 (SFX)
+     */
+    toggleSFX() {
+        this.isSfxMuted = !this.isSfxMuted;
+        try {
+            localStorage.setItem("pharmacy_tower_sfx_muted", this.isSfxMuted);
+        } catch (e) {}
+
+        if (!this.isSfxMuted) {
+            this.playClick();
+        }
+        return this.isSfxMuted;
+    }
+
+    // 保留相容性
+    toggleMute() {
+        return this.toggleBGM();
     }
 
     /**
@@ -73,7 +101,12 @@ class SoundEngine {
         }
 
         this.currentBgm = normalizedType;
-        if (this.isMuted) return;
+        if (this.isBgmMuted) {
+            if (this.bgmAudio) {
+                this.bgmAudio.pause();
+            }
+            return;
+        }
 
         const src = this.bgmTracks[normalizedType];
         if (!src) return;
@@ -105,7 +138,7 @@ class SoundEngine {
         let current = 0;
 
         const timer = setInterval(() => {
-            if (this.isMuted || !audio) {
+            if (this.isBgmMuted || !audio) {
                 if (audio) audio.volume = 0;
                 clearInterval(timer);
                 return;
@@ -160,7 +193,7 @@ class SoundEngine {
     // Web Audio API 技能特效與音效
     // ==========================================
     playClick() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -176,7 +209,7 @@ class SoundEngine {
     }
 
     playSuccess() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
         notes.forEach((freq, index) => {
@@ -195,7 +228,7 @@ class SoundEngine {
     }
 
     playError() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -211,7 +244,7 @@ class SoundEngine {
     }
 
     playMagic() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const freqs = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
         freqs.forEach((f, i) => {
@@ -229,7 +262,7 @@ class SoundEngine {
     }
 
     playAttack() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -245,7 +278,7 @@ class SoundEngine {
     }
 
     playFanfare() {
-        if (this.isMuted) return;
+        if (this.isSfxMuted) return;
         this.init();
         const melody = [
             { f: 523.25, d: 0.15 },

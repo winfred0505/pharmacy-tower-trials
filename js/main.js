@@ -26,8 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.engine.closeLoreModal();
             }
         } else if (e.key === "m" || e.key === "M") {
-            const btnAudio = document.getElementById("btn-toggle-audio");
-            if (btnAudio) btnAudio.click();
+            const btnBgm = document.getElementById("btn-toggle-bgm");
+            if (btnBgm) btnBgm.click();
+        } else if (e.key === "n" || e.key === "N" || e.key === "s" || e.key === "S") {
+            const btnSfx = document.getElementById("btn-toggle-sfx");
+            if (btnSfx) btnSfx.click();
         } else if (e.key === "r" || e.key === "R") {
             const btnRestart = document.getElementById("btn-restart");
             if (btnRestart) btnRestart.click();
