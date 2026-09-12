@@ -75,10 +75,14 @@ class PharmacyTowerEngine {
         document.addEventListener("keydown", unlockAudio);
         document.addEventListener("touchstart", unlockAudio);
 
-        // 點擊對話框推進對話
+        // 點擊對話框推進對話 (支援滑鼠點擊、觸控與點擊音效)
         const dialogBox = document.getElementById("npc-guide-box");
         if (dialogBox) {
-            dialogBox.onclick = () => this.advanceDialog();
+            dialogBox.onclick = (e) => {
+                e.stopPropagation();
+                window.soundEngine.playClick();
+                this.advanceDialogue();
+            };
         }
 
         // 全域鍵盤快捷鍵
@@ -87,7 +91,7 @@ class PharmacyTowerEngine {
 
             if (e.code === "Space") {
                 e.preventDefault();
-                this.advanceDialog();
+                this.advanceDialogue();
             } else if (e.key === "b" || e.key === "B" || e.key === "l" || e.key === "L") {
                 this.openLoreModal();
             } else if (e.key === "m" || e.key === "M") {
@@ -308,6 +312,10 @@ class PharmacyTowerEngine {
             // 對話結束提示
             document.getElementById("guide-dialog").textContent = "請點擊場景中的光圈熱點，展開探索或解鎖試煉！";
         }
+    }
+
+    advanceDialog() {
+        this.advanceDialogue();
     }
 
     typewriterEffect(text) {
