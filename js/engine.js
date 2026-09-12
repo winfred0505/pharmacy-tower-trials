@@ -13,6 +13,8 @@ class PharmacyTowerEngine {
         this.dialogueIdx = 0;
         this.isTyping = false;
         this.typewriterTimer = null;
+        this.lastDialogueAdvanceTime = 0;
+        this.showingGoalHint = false;
     }
 
     init() {
@@ -75,25 +77,49 @@ class PharmacyTowerEngine {
         document.addEventListener("keydown", unlockAudio);
         document.addEventListener("touchstart", unlockAudio);
 
-        // 點擊對話框推進對話 (支援滑鼠點擊、觸控與點擊音效)
+        // 點擊或觸控對話框推進對話 (無延遲即時響應)
+        const handleDialogueClick = (e) => {
+            if (e) {
+                e.stopPropagation();
+            }
+            this.advanceDialogue();
+        };
+
         const dialogBox = document.getElementById("npc-guide-box");
         if (dialogBox) {
-            dialogBox.onclick = (e) => {
-                e.stopPropagation();
-                window.soundEngine.playClick();
-                this.advanceDialogue();
-            };
+            dialogBox.addEventListener("click", handleDialogueClick);
         }
+
+        const hintBtn = document.getElementById("guide-hint-btn");
+        if (hintBtn) {
+            hintBtn.addEventListener("click", handleDialogueClick);
+        }
+
+        // 文件層級委派監聽：若點擊事件未被攔截且位於對話框內，確保仍能觸發推進
+        document.addEventListener("click", (e) => {
+            if (e.target && e.target.closest && e.target.closest("#npc-guide-box")) {
+                handleDialogueClick(e);
+            }
+        });
 
         // 全域鍵盤快捷鍵
         document.addEventListener("keydown", (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-            if (e.code === "Space") {
-                e.preventDefault();
-                this.advanceDialogue();
+            // 若彈窗開啟中，不觸發部分快捷鍵
+            const hasActiveModal = document.querySelector(".modal-overlay.active");
+
+            if (e.code === "Space" || e.key === "Enter") {
+                if (!hasActiveModal) {
+                    e.preventDefault();
+                    handleDialogueClick(e);
+                }
             } else if (e.key === "b" || e.key === "B" || e.key === "l" || e.key === "L") {
-                this.openLoreModal();
+                if (!hasActiveModal) {
+                    this.openLoreModal();
+                } else if (document.getElementById("lore-modal") && document.getElementById("lore-modal").classList.contains("active")) {
+                    this.closeLoreModal();
+                }
             } else if (e.key === "m" || e.key === "M") {
                 const btnBgm = document.getElementById("btn-toggle-bgm");
                 if (btnBgm) btnBgm.click();
@@ -101,10 +127,17 @@ class PharmacyTowerEngine {
                 const btnSfx = document.getElementById("btn-toggle-sfx");
                 if (btnSfx) btnSfx.click();
             } else if (e.key === "h" || e.key === "H") {
-                this.showHint();
+                if (!hasActiveModal) {
+                    this.showHint();
+                }
             } else if (e.key === "r" || e.key === "R") {
                 const btnRestart = document.getElementById("btn-restart");
                 if (btnRestart) btnRestart.click();
+            } else if (e.key === "Escape") {
+                if (hasActiveModal) {
+                    this.puzzleManager.closePuzzle();
+                    this.closeLoreModal();
+                }
             }
         });
     }
@@ -286,31 +319,66 @@ class PharmacyTowerEngine {
         if (!dialogList || dialogList.length === 0) return;
         this.dialogueQueue = [...dialogList];
         this.dialogueIdx = 0;
+        this.showingGoalHint = false;
         this.displayNextDialogue();
     }
 
     displayNextDialogue() {
-        if (this.dialogueIdx >= this.dialogueQueue.length) return;
+        if (!this.dialogueQueue || this.dialogueIdx >= this.dialogueQueue.length) return;
         const text = this.dialogueQueue[this.dialogueIdx];
         this.typewriterEffect(text);
     }
 
     advanceDialogue() {
+        // 1. 視覺點擊動畫反饋 (金色邊框發光脈衝與按壓效果)
+        const box = document.getElementById("npc-guide-box");
+        if (box) {
+            box.classList.remove("clicked");
+            void box.offsetWidth; // 強制重繪觸發動畫
+            box.classList.add("clicked");
+        }
+
+        // 2. 播放操作音效（嚴格加入安全保護，防止 AudioContext 拋出例外中斷推進）
+        try {
+            if (window.soundEngine && typeof window.soundEngine.playClick === 'function') {
+                window.soundEngine.playClick();
+            }
+        } catch (err) {
+            console.warn("SoundEngine playClick caught error:", err);
+        }
+
+        // 3. 若打字機特效輸出中，立即完成打字顯示全句
         if (this.isTyping) {
-            // 立即顯示全文
             clearInterval(this.typewriterTimer);
-            const text = this.dialogueQueue[this.dialogueIdx];
-            document.getElementById("guide-dialog").textContent = text;
             this.isTyping = false;
+            const text = (this.dialogueQueue && this.dialogueQueue[this.dialogueIdx]) || "";
+            const dialogEl = document.getElementById("guide-dialog");
+            if (dialogEl && text) {
+                dialogEl.textContent = text;
+            }
+            this.updateGuideHint();
             return;
         }
 
-        if (this.dialogueIdx + 1 < this.dialogueQueue.length) {
+        // 4. 若對話佇列中還有下一句，推進下一句
+        if (this.dialogueQueue && this.dialogueIdx + 1 < this.dialogueQueue.length) {
             this.dialogueIdx++;
+            this.showingGoalHint = false;
             this.displayNextDialogue();
+            return;
+        }
+
+        // 5. 若已抵達對話末尾：
+        // 第一次點擊顯示本章核心目標提示；再次點擊可循環重新播放開場對話
+        if (!this.showingGoalHint) {
+            this.showCurrentGoalHint();
         } else {
-            // 對話結束提示
-            document.getElementById("guide-dialog").textContent = "請點擊場景中的光圈熱點，展開探索或解鎖試煉！";
+            // 重播本章 NPC 引導對話
+            const ch = GAME_DATA.chapters[this.currentChapterIdx];
+            if (ch && ch.introDialog) {
+                this.showingGoalHint = false;
+                this.startDialogue(ch.introDialog);
+            }
         }
     }
 
@@ -318,10 +386,50 @@ class PharmacyTowerEngine {
         this.advanceDialogue();
     }
 
+    showCurrentGoalHint() {
+        this.showingGoalHint = true;
+        const ch = GAME_DATA.chapters[this.currentChapterIdx];
+        let goalMsg = "請點擊場景中的光圈熱點，展開探索或解鎖試煉！";
+        if (ch) {
+            if (ch.id === 0) {
+                goalMsg = "📜【當前目標】請拾取石台上的《藥王寶典》，並至軍械架領取裝備，做好準備後開啟塔門！";
+            } else if (ch.id === 1) {
+                goalMsg = "❄️【當前目標】請解鎖冷鏈保溫櫃、掌握 KwikPen 機械排氣與禁忌症核方，迎戰糖魔領主！";
+            } else if (ch.id === 2) {
+                goalMsg = "⚖️【當前目標】請至肥胖共病案台診斷、調平五階晨曦天秤並調製健胃藥劑，迎戰脂縛巨獸！";
+            } else if (ch.id === 3) {
+                goalMsg = "🧬【當前目標】請完成 GalNAc-siRNA 靶向拼圖、設定超長效時程與降脂水晶，迎戰血煞妖皇！";
+            } else if (ch.id === 4) {
+                goalMsg = "👑【當前目標】請點擊中央太極代謝神壇，進行三大聖劑綜合考核，受封藥王宗師！";
+            }
+        }
+        this.dialogueQueue = [goalMsg];
+        this.dialogueIdx = 0;
+        this.typewriterEffect(goalMsg);
+    }
+
+    updateGuideHint() {
+        const hintEl = document.getElementById("guide-hint-btn") || document.querySelector(".guide-hint-click");
+        if (!hintEl) return;
+
+        if (this.isTyping) {
+            hintEl.innerHTML = `⏩ 快速完成 (Space)`;
+        } else if (this.dialogueQueue && this.dialogueIdx + 1 < this.dialogueQueue.length) {
+            const remaining = this.dialogueQueue.length - 1 - this.dialogueIdx;
+            hintEl.innerHTML = `點擊繼續 (剩 ${remaining} 句) ▶`;
+        } else if (this.showingGoalHint) {
+            hintEl.innerHTML = `🔄 重聽本章引導 ▶`;
+        } else {
+            hintEl.innerHTML = `💡 查看任務目標 ▶`;
+        }
+    }
+
     typewriterEffect(text) {
         this.isTyping = true;
+        this.updateGuideHint();
         let charIdx = 0;
         const dialogEl = document.getElementById("guide-dialog");
+        if (!dialogEl) return;
         dialogEl.textContent = "";
 
         if (this.typewriterTimer) clearInterval(this.typewriterTimer);
@@ -333,11 +441,16 @@ class PharmacyTowerEngine {
             } else {
                 clearInterval(this.typewriterTimer);
                 this.isTyping = false;
+                this.updateGuideHint();
             }
-        }, 25);
+        }, 22);
     }
 
     showGuideMessage(msg) {
+        if (!msg) return;
+        this.dialogueQueue = [msg];
+        this.dialogueIdx = 0;
+        this.showingGoalHint = false;
         if (this.typewriterTimer) clearInterval(this.typewriterTimer);
         this.typewriterEffect(msg);
     }
